@@ -23,18 +23,19 @@ fn main() -> std::io::Result<()> {
         while let Ok(event) = read_event() {
             match event {
                 Event::WindowOpenedOrChanged { window } => {
-                    if current > 0
-                        && let Some(title) = window.title
-                        && let Some(appid) = window.app_id
-                    {
-                        if title == "Unlock Database - KeePassXC"
-                            && appid == "org.keepassxc.KeePassXC"
-                        {
-                            // Responses are ignored
-                            let _ = move_window_to_current(
-                                window.id,
-                                WorkspaceReferenceArg::Id(current),
-                            );
+                    if current > 0 {
+                        if let Some(title) = window.title {
+                            if let Some(appid) = window.app_id {
+                                if title == "Unlock Database - KeePassXC"
+                                    && appid == "org.keepassxc.KeePassXC"
+                                {
+                                    // Responses are ignored
+                                    let _ = move_window_to_current(
+                                        window.id,
+                                        WorkspaceReferenceArg::Id(current),
+                                    );
+                                }
+                            }
                         }
                     }
                 }
