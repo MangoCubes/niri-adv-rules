@@ -16,33 +16,14 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        nativeBuildInputs = [ pkgs.pkg-config ];
-        buildInputs = with pkgs; [
-          openssl
-          alsa-lib
-        ];
       in
       {
         packages.default = pkgs.rustPlatform.buildRustPackage {
-          inherit buildInputs nativeBuildInputs;
           src = ./.;
           name = "niri-adv-rules";
-          cargoHash = "sha256-DamExzRMEFn9C5OfF1k6PCZZMorIQAAYr/b4wy0MOOI=";
+          cargoHash = "sha256-m9TleJzwHpPYKrDOekGy4wfcvSbxEoO+pr2Yk3cBmos=";
         };
         devShells.default = pkgs.mkShell {
-          packages = (
-            with pkgs;
-            [
-              rust-analyzer
-              lldb
-              jq
-              rustup
-              # This is necessary for opening bash from Neovim
-              bash
-            ]
-          );
-          inherit buildInputs nativeBuildInputs;
-
           env = {
             RUST_BACKTRACE = "full";
           };
@@ -53,7 +34,7 @@
                 set -a
                   hw() { echo "Hello world!"; }
                   build() { nix build; }
-                  run() { build; }
+                  run() { build; ./result/bin/niri-adv-rules; }
                 set +a
                 # nvim .
               '';
