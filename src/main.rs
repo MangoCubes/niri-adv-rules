@@ -1,26 +1,43 @@
-use niri_ipc::{Event, Request, Response, socket::Socket};
+use std::{fs::File, io::Read, path::PathBuf};
 
-use crate::{
-    action::WindowAction,
-    condition::WindowCond,
-    rules::{ConvertedRules, Rule, Rules, WindowRule},
-};
+use clap::Parser;
+use home::home_dir;
+use niri_ipc::{Event, Request, Response, socket::Socket};
+use serde_json::Error;
+
+use crate::rules::{ConvertedRules, Rules};
 
 mod action;
 mod condition;
 mod rules;
 
+#[derive(Parser)]
+struct Cli {
+    /// Path to the config file
+    #[clap(short, long, value_parser)]
+    config: Option<PathBuf>,
+}
+
+fn read_config(file_path: &str) -> Result<Rules, Error> {
+    let mut file = File::open(file_path).expect("Unable to open file");
+    let mut data = String::new();
+    file.read_to_string(&mut data).expect("Unable to read file");
+
+    serde_json::from_str(&data)
+}
+
 fn main() -> std::io::Result<()> {
+    let cli = Cli::parse();
+
+    let default_path = home_dir()
+        .expect("You don't have a home??")
+        .join(".config/niri-adv-rules/config.json");
+    let config_path = cli.config.unwrap_or(PathBuf::from(default_path));
+    let rules =
+        read_config(config_path.to_str().unwrap()).expect("Failed to parse config into rules.");
+
     let mut read_soc = Socket::connect()?;
     let mut current = 0;
-    let rules: Rules = Rules(vec![Rule::Window(WindowRule(
-        vec![
-            WindowCond::IsFloating(true),
-            WindowCond::AppID("org.keepassxc.KeePassXC".to_string(), false),
-        ],
-        vec![WindowAction::MoveToWorkspace(None)],
-    ))]);
-
     let mut converted_rules: Option<ConvertedRules> = None;
 
     let reply = read_soc.send(Request::EventStream)?;

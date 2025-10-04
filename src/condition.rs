@@ -1,6 +1,7 @@
 use niri_ipc::{Window, Workspace};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub enum WindowCond {
     AppTitle(String, bool),
     AppID(String, bool),

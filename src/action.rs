@@ -1,6 +1,7 @@
 use niri_ipc::{Action, Request, Window, Workspace, WorkspaceReferenceArg};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub enum WindowAction {
     MoveToWorkspace(Option<String>),
 }

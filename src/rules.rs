@@ -1,19 +1,20 @@
 use std::error::Error;
 
 use niri_ipc::{Request, Window, Workspace, socket::Socket};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     action::{ConvertedWindowAction, WindowAction},
     condition::{ConvertedWindowCond, WindowCond},
 };
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Rules(pub Vec<Rule>);
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct WindowRule(pub Vec<WindowCond>, pub Vec<WindowAction>);
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub enum Rule {
     Window(WindowRule),
 }
