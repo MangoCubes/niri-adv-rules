@@ -37,6 +37,12 @@ fn main() -> std::io::Result<()> {
     let rules =
         read_config(config_path.to_str().unwrap()).expect("Failed to parse config into rules.");
 
+    println!(
+        "Rules read successfully! Rules:\n{}",
+        serde_json::to_string(&rules)
+            .expect("Rules have been parsed successfully but cannot be converted back to string??")
+    );
+
     let mut read_soc = Socket::connect()?;
     let mut current = 0;
     let mut converted_rules: Option<ConvertedRules> = None;

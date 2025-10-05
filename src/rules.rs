@@ -12,7 +12,10 @@ use crate::{
 pub struct Rules(pub Vec<Rule>);
 
 #[derive(Clone, Deserialize, Serialize)]
-pub struct WindowRule(pub Vec<WindowCond>, pub Vec<WindowAction>);
+pub struct WindowRule {
+    pub conditions: Vec<WindowCond>,
+    pub actions: Vec<WindowAction>,
+}
 
 #[derive(Clone, Deserialize, Serialize)]
 pub enum Rule {
@@ -43,14 +46,16 @@ pub struct ConvertedWindowRule {
 
 impl ConvertedWindowRule {
     pub fn from(r: WindowRule, state: &Vec<Workspace>) -> Self {
-        let conds =
-            r.0.into_iter()
-                .filter_map(|c| ConvertedWindowCond::from(c, state))
-                .collect();
-        let action =
-            r.1.into_iter()
-                .filter_map(|a| ConvertedWindowAction::from(a, state))
-                .collect();
+        let conds = r
+            .conditions
+            .into_iter()
+            .filter_map(|c| ConvertedWindowCond::from(c, state))
+            .collect();
+        let action = r
+            .actions
+            .into_iter()
+            .filter_map(|a| ConvertedWindowAction::from(a, state))
+            .collect();
         Self { conds, action }
     }
     pub fn run(&self, window: &Window, current: u64) -> Result<bool, Box<dyn Error>> {
