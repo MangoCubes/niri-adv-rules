@@ -1,0 +1,71 @@
+:PROPERTIES:
+:ID:       1bba16b5-5bce-427e-a1dd-492c69af9be9
+:END:
+
+#+TITLE: niri-adv-rules
+
+This is a program that adds complex rulesets that are currently not possible with the existing niri configuration. It reads all the events that are happening on your desktop, and runs a set of predefined actions based on their condition.
+
+* Configuration
+The configuration is to be stored at =~/.config/niri-adv-rules/config.json=. The config format needs to be JSON as any other formats turned out to be very unintuitive, even compared against JSON. Here is an example:
+#+BEGIN_SRC js  
+[
+   {
+      "Window":{
+         "conditions":[
+            {
+               "IsFloating":true
+            },
+            {
+               "AppID":{
+                  "id":"org.keepassxc.KeePassXC",
+                  "invert":false
+               }
+            }
+         ],
+         "actions":[
+            {
+               "MoveToWorkspace":null
+            }
+         ]
+      }
+   }
+]
+#+END_SRC
+TLDR: This config contains a single rule that makes all floating popups of KeePassXC to show in the currently active workspace.
+
+The top level is an array that contains a list of rule structs, each corresponding to an independent rule (={"Window": ...}=). The =Window= is the "trigger", meaning that this rule would be invoked whenever there is a change to a window (new window pops up, window title changes, window becomes floating, etc). For now, this program is not stateful, and the rule's trigger determines both the type of conditions to check and the type of action to invoke.
+** Rule
+Each rule object consists of two items: =conditions= and =actions=. Again, the types of allowed conditions and actions are determined by the "trigger". For example, =Window= implies the conditions will be matched against the newly updated/created window. Similarly, the action will be invoked on that particular window only.
+
+Currently implemented rule triggers are as follows:
+- =Window=: Triggers whenever there is a change in the windows. This includes changes in the title (many browsers display the current website as their title), app ID. It also includes new windows, but not closing them.
+  - Conditions will be matched against a single window that triggered this rule.
+  - Actions will be invoked against a single window that triggered this rule.
+** Condition
+Condition lists the properties the window must have in order to invoke the actions. *To invoke the action, all conditions must be met.* Some conditions have =invert= field, which essentially matches everything that does *not* match the given condition. The example above have =IsFloating= to true and =AppID= to match against =org.keepassxc.KeePassXC=. This means that the actions will be invoked for all floating windows of KeePassXC programs. In practice, these match against all KeePassXC popups. If we were to set =invert= to =true=, then the actions will be invoked for all windows *except* KeePassXC windows.
+
+Currently implemented conditions are as follows:
+- =Window=
+  - =AppTitleRegex=
+    - =pattern=: Regex pattern to match against the app title.
+    - =invert=: If true, the window matches this rule if the pattern is not found in the window title.
+  - =AppIDRegex=
+    - =pattern=: Regex pattern to match against the app ID. Use =niri msg pick-window= to find out a program's ID.
+    - =invert=: If true, the window matches this rule if the pattern is not found in the window ID.
+  - =AppID=
+    - =id=: The app ID to look for. Must match exactly, from start to end. Use =niri msg pick-window= to find out a program's ID.
+    - =invert=: If true, the window matches this rule if the app ID is not exactly the same.
+  - =AppTitle=
+    - =id=: The app title to look for. Must match exactly, from start to end.
+    - =invert=: If true, the window matches this rule if the app title is not exactly the same.
+  - =IsFloating=: If true, then the window must be floating to match this rule.
+  - =WindowIn=
+    - =wsname=: Name of the workspace in the form of string.
+    - =invert=: If true, this condition matches all windows not in the specified workspace.
+** Actions
+Actions specifies the list of niri (TODO: and non-niri) commands to run. Since we are currently in =Window= trigger, the actions will be run against the windows that matches against all the conditions. There are some actions that are typically not available in niri without some scripting, and the example can be seen above. For the most part of the config, you can refer to the workspace by its name in the config, or =null=, which means the workspace the user is currently focusing on.
+
+Currently implemented actions are as follows:
+- =Window=
+  - =MoveToWorkspace=: A string that specifies the name of the workspace, or =null=, meaning the currently focused workspace.
