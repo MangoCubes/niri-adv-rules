@@ -4,11 +4,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Deserialize, Serialize)]
 pub enum WindowCond {
-    AppTitleRegex(String, bool),
-    AppIDRegex(String, bool),
-    AppTitle(String, bool),
-    AppID(String, bool),
-    WindowIn(String, bool),
+    AppTitleRegex { pattern: String, invert: bool },
+    AppIDRegex { pattern: String, invert: bool },
+    AppTitle { title: String, invert: bool },
+    AppID { id: String, invert: bool },
+    WindowIn { wsname: String, invert: bool },
     IsFloating(bool),
 }
 
@@ -29,21 +29,21 @@ pub enum ConvertedWindowCond {
 impl ConvertedWindowCond {
     pub fn from(c: WindowCond, state: &Vec<Workspace>) -> Option<Self> {
         match c {
-            WindowCond::AppTitle(title, invert) => {
+            WindowCond::AppTitle { title, invert } => {
                 if invert {
                     Some(ConvertedWindowCond::NotAppTitle(title))
                 } else {
                     Some(ConvertedWindowCond::AppTitle(title))
                 }
             }
-            WindowCond::AppID(id, invert) => {
+            WindowCond::AppID { id, invert } => {
                 if invert {
                     Some(ConvertedWindowCond::NotAppID(id))
                 } else {
                     Some(ConvertedWindowCond::AppID(id))
                 }
             }
-            WindowCond::WindowIn(wsname, invert) => {
+            WindowCond::WindowIn { wsname, invert } => {
                 let ws = state.iter().find(|w| {
                     if let Some(name) = &w.name {
                         *name == wsname
@@ -63,7 +63,7 @@ impl ConvertedWindowCond {
                 }
             }
             WindowCond::IsFloating(val) => Some(ConvertedWindowCond::IsFloating(val)),
-            WindowCond::AppTitleRegex(pattern, invert) => match Regex::new(&pattern) {
+            WindowCond::AppTitleRegex { pattern, invert } => match Regex::new(&pattern) {
                 Ok(r) => {
                     if invert {
                         Some(ConvertedWindowCond::NotAppTitleRegex(r))
@@ -79,7 +79,7 @@ impl ConvertedWindowCond {
                     None
                 }
             },
-            WindowCond::AppIDRegex(pattern, invert) => match Regex::new(&pattern) {
+            WindowCond::AppIDRegex { pattern, invert } => match Regex::new(&pattern) {
                 Ok(r) => {
                     if invert {
                         Some(ConvertedWindowCond::NotAppIDRegex(r))
