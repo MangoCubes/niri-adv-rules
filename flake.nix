@@ -27,6 +27,17 @@
           env = {
             RUST_BACKTRACE = "full";
           };
+          packages = (
+            with pkgs;
+            [
+              rust-analyzer
+              lldb
+              jq
+              rustup
+              # This is necessary for opening bash from Neovim
+              bash
+            ]
+          );
           shellHook =
             let
               initFile = pkgs.writeText ".bashrc" ''

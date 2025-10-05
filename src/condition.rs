@@ -1,8 +1,11 @@
 use niri_ipc::{Window, Workspace};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Deserialize, Serialize)]
 pub enum WindowCond {
+    AppTitleRegex(String, bool),
+    AppIDRegex(String, bool),
     AppTitle(String, bool),
     AppID(String, bool),
     WindowIn(String, bool),
@@ -12,9 +15,13 @@ pub enum WindowCond {
 pub enum ConvertedWindowCond {
     NotAppTitle(String),
     NotAppID(String),
+    NotAppTitleRegex(Regex),
+    NotAppIDRegex(Regex),
     NotWindowIn(u64),
     AppTitle(String),
     AppID(String),
+    AppTitleRegex(Regex),
+    AppIDRegex(Regex),
     WindowIn(u64),
     IsFloating(bool),
 }
@@ -51,10 +58,43 @@ impl ConvertedWindowCond {
                         Some(ConvertedWindowCond::WindowIn(w.id))
                     }
                 } else {
+                    eprintln!("Rule ignored - Failed to find workspace named {}.", wsname);
                     None
                 }
             }
             WindowCond::IsFloating(val) => Some(ConvertedWindowCond::IsFloating(val)),
+            WindowCond::AppTitleRegex(pattern, invert) => match Regex::new(&pattern) {
+                Ok(r) => {
+                    if invert {
+                        Some(ConvertedWindowCond::NotAppTitleRegex(r))
+                    } else {
+                        Some(ConvertedWindowCond::AppTitleRegex(r))
+                    }
+                }
+                Err(err) => {
+                    eprintln!(
+                        "Rule ignored - Failed to parse {} as regex pattern: {}",
+                        pattern, err
+                    );
+                    None
+                }
+            },
+            WindowCond::AppIDRegex(pattern, invert) => match Regex::new(&pattern) {
+                Ok(r) => {
+                    if invert {
+                        Some(ConvertedWindowCond::NotAppIDRegex(r))
+                    } else {
+                        Some(ConvertedWindowCond::AppIDRegex(r))
+                    }
+                }
+                Err(err) => {
+                    eprintln!(
+                        "Rule ignored - Failed to parse {} as regex pattern: {}",
+                        pattern, err
+                    );
+                    None
+                }
+            },
         }
     }
     pub fn matches(&self, window: &Window) -> bool {
@@ -102,6 +142,34 @@ impl ConvertedWindowCond {
                 }
             }
             ConvertedWindowCond::IsFloating(val) => &window.is_floating == val,
+            ConvertedWindowCond::NotAppTitleRegex(regex) => {
+                if let Some(title) = &window.title {
+                    !regex.is_match(title)
+                } else {
+                    true
+                }
+            }
+            ConvertedWindowCond::NotAppIDRegex(regex) => {
+                if let Some(id) = &window.app_id {
+                    !regex.is_match(id)
+                } else {
+                    true
+                }
+            }
+            ConvertedWindowCond::AppTitleRegex(regex) => {
+                if let Some(title) = &window.title {
+                    regex.is_match(title)
+                } else {
+                    false
+                }
+            }
+            ConvertedWindowCond::AppIDRegex(regex) => {
+                if let Some(id) = &window.app_id {
+                    regex.is_match(id)
+                } else {
+                    false
+                }
+            }
         }
     }
 }

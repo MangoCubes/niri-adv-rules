@@ -19,9 +19,10 @@ struct Cli {
 }
 
 fn read_config(file_path: &str) -> Result<Rules, Error> {
-    let mut file = File::open(file_path).expect("Unable to open file");
+    let mut file = File::open(file_path).expect("Unable to open file.");
     let mut data = String::new();
-    file.read_to_string(&mut data).expect("Unable to read file");
+    file.read_to_string(&mut data)
+        .expect("Unable to read file.");
 
     serde_json::from_str(&data)
 }
