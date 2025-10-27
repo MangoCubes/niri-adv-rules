@@ -12,7 +12,10 @@
       nixpkgs,
       flake-utils,
     }:
-    flake-utils.lib.eachDefaultSystem (
+    {
+      homeManager = ./nix/homeManager.nix;
+    }
+    // flake-utils.lib.eachDefaultSystem (
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
