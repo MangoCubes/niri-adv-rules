@@ -2,7 +2,7 @@
   description = "Rust development environment";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -24,7 +24,7 @@
         packages.default = pkgs.rustPlatform.buildRustPackage {
           src = ./.;
           name = "niri-adv-rules";
-          cargoHash = "sha256-oXHOPbjFeIDQFhESmiy4wWF/4KNOTP4F1B3JYv1Wxw0=";
+          cargoHash = "sha256-mS9urv7cK8HIl15rB0M8MfeAOjH/DU9oNtvEC69Y7C4=";
         };
         devShells.default = pkgs.mkShell {
           env = {
