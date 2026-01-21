@@ -24,7 +24,7 @@
         packages.default = pkgs.rustPlatform.buildRustPackage {
           src = ./.;
           name = "niri-adv-rules";
-          cargoHash = "sha256-mS9urv7cK8HIl15rB0M8MfeAOjH/DU9oNtvEC69Y7C4=";
+          cargoHash = "sha256-KdH43bFtqUcFLTxGKLgQVulI6zHY5qTj9U9jheHLsn8=";
         };
         devShells.default = pkgs.mkShell {
           env = {
