@@ -2,8 +2,9 @@
   description = "Rust development environment";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    rust-overlay.url = "github:oxalica/rust-overlay";
   };
 
   outputs =
@@ -11,6 +12,7 @@
       self,
       nixpkgs,
       flake-utils,
+      rust-overlay,
     }:
     {
       homeManager = ./nix/homeManager.nix;
@@ -18,15 +20,30 @@
     // flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        overlays = [ (import rust-overlay) ];
+        pkgs = import nixpkgs {
+          inherit system overlays;
+        };
+        nativeBuildInputs = [ pkgs.pkg-config ];
+        rustToolchain = pkgs.rust-bin.stable.latest.default.override {
+          extensions = [
+            "rust-src"
+            "rust-analyzer"
+          ];
+        };
+        buildInputs = [
+          rustToolchain
+        ];
       in
       {
         packages.default = pkgs.rustPlatform.buildRustPackage {
+          inherit buildInputs nativeBuildInputs;
           src = ./.;
           name = "niri-adv-rules";
-          cargoHash = "sha256-mS9urv7cK8HIl15rB0M8MfeAOjH/DU9oNtvEC69Y7C4=";
+          cargoHash = "sha256-hl6OSSxOR9gJYf50iEZmLqhj07YxuQ1/JPOZUE9yf0M=";
         };
         devShells.default = pkgs.mkShell {
+          inherit buildInputs nativeBuildInputs;
           env = {
             RUST_BACKTRACE = "full";
           };
